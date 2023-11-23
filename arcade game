@@ -1,0 +1,108 @@
+let jugador: number[][] = [[2, 4, 9]];
+let ledindex = 0;
+let velocidad = 0.25;
+let contador = 0;
+
+function intro(){
+    music.setVolume(100)
+    music.play(music.tonePlayable(196, music.beat(BeatFraction.Half)), music.PlaybackMode.UntilDone)
+    music.play(music.tonePlayable(208, music.beat(BeatFraction.Half)), music.PlaybackMode.UntilDone)
+    music.play(music.tonePlayable(233, music.beat(BeatFraction.Whole)), music.PlaybackMode.UntilDone)
+}
+
+intro()
+
+function gameover() {
+    music.setVolume(100)
+    music.play(music.tonePlayable(175, music.beat(BeatFraction.Half)), music.PlaybackMode.UntilDone)
+    music.play(music.tonePlayable(165, music.beat(BeatFraction.Half)), music.PlaybackMode.UntilDone)
+    music.play(music.tonePlayable(147, music.beat(BeatFraction.Half)), music.PlaybackMode.UntilDone)
+    music.play(music.tonePlayable(131, music.beat(BeatFraction.Whole)), music.PlaybackMode.UntilDone)
+}
+
+
+input.onButtonPressed(Button.A, () => {
+    izquierda(1);
+});
+
+function izquierda(direction: number) {
+    jugador[ledindex][0] = (jugador[ledindex][0] - direction + 5) % 5;
+}
+
+input.onButtonPressed(Button.B, () => {
+    derecha(1);
+});
+
+function derecha(direction: number) {
+    jugador[ledindex][0] = (jugador[ledindex][0] + direction + 5) % 5;
+}
+
+let bloque: number[][] = [[0, 0, 0]];
+
+function crearBloque() {
+/* aca se puede añadir el bloque que se desee utilizando la estructura de [ejex, ejey, intensidad] */
+
+    let bloquesPosibles = [
+        [[2, 0, 9]],
+        [[0, 0, 9]],
+        [[1, 0, 9]],
+        [[3, 0, 9]],
+        [[4, 0, 9]],
+        [[0, 0, 9], [0, 1, 9], [1, 0, 9], [1, 1, 9]],
+        [[1, 0, 9], [1, 1, 9], [2, 0, 9], [2, 1, 9]],
+        [[2, 0, 9], [2, 1, 9], [3, 1, 9], [3, 0, 9]],
+        [[3, 0, 9], [3, 1, 9], [4, 1, 9], [4, 0, 9]],
+        [[0, 0, 9], [0, 1, 9], [1, 0, 9], [1, 1, 9], [2, 0, 9], [2, 1, 9]],
+        [[1, 0, 9], [1, 1, 9], [2, 0, 9], [2, 1, 9], [3, 0, 9], [3, 1, 9]],
+        [[2, 0, 9], [2, 1, 9], [3, 0, 9], [3, 1, 9], [4, 1, 9], [4, 0, 9]],
+        [[0, 0, 9], [0, 1, 9], [1, 0, 9], [1, 1, 9], [2, 0, 9], [2, 1, 9], [3, 0, 9], [3, 1, 9]],
+        [[1, 0, 9], [1, 1, 9], [2, 0, 9], [2, 1, 9], [3, 0, 9], [3, 1, 9], [4, 0, 9], [4, 1, 9]],
+        [[0,0,9],[1,0,9],[3,0,9],[4,0,9],[1,0,9],[1,1,9],[3,1,9],[4,1,9],[0,1,9]],
+    ];
+
+    bloque = bloquesPosibles[Math.floor(Math.random() * bloquesPosibles.length)];
+}
+
+function colisiona() {
+    for (let i = 0; i < bloque.length; i++) {
+        for (let j = 0; j < jugador.length; j++) {
+            if (jugador[j][0] == bloque[i][0] && jugador[j][1] == bloque[i][1]) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function mostrarBloques() {
+    while (bloque[0][1] < 4) {
+        basic.clearScreen();
+        for (let i = 0; i < jugador.length; i++) {
+            led.plotBrightness(jugador[i][0], jugador[i][1], jugador[i][2]);
+        }
+        for (let i = 0; i < bloque.length; i++) {
+            led.plotBrightness(bloque[i][0], bloque[i][1], bloque[i][2]);
+        }
+
+        if (colisiona()) {
+            gameover()
+            basic.showNumber(contador);
+            contador = 0;
+            crearBloque();
+            break;
+        }
+
+        basic.pause(250);
+        for (let i = 0; i < bloque.length; i++) {
+            bloque[i][1] += 1;
+        }
+    }
+}
+
+basic.forever(() => {
+    crearBloque();
+    contador += 1;
+    velocidad += contador / 1000000;
+    basic.clearScreen();
+    mostrarBloques();
+});
